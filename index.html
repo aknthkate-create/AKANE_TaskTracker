@@ -670,28 +670,13 @@
 
       <!-- ══ PAGE: RECURRING ══ -->
       <div class="page" id="page-recurring">
-        <div class="rec-section">
-          <div class="rec-section-title">
-            <div class="rec-dot rec-daily"></div>
-            <span>ทุกวัน</span>
-            <span style="color:var(--text3);font-size:12px;margin-left:4px">— เพิ่มเข้างานทั้งหมดทุกเช้า</span>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <div style="flex:1">
+            <div style="font-size:13px;color:var(--text3)">งานประจำจะสร้างขึ้นอัตโนมัติทุกครั้งที่เปิดแอป ตามวันที่กำหนด</div>
           </div>
-          <div id="rec-daily"></div>
+          <button class="btn btn-primary" onclick="openRecModal()">+ เพิ่มงานประจำ</button>
         </div>
-        <div class="rec-section">
-          <div class="rec-section-title">
-            <div class="rec-dot rec-weekly"></div>
-            <span>ทุกสัปดาห์</span>
-          </div>
-          <div id="rec-weekly"></div>
-        </div>
-        <div class="rec-section">
-          <div class="rec-section-title">
-            <div class="rec-dot rec-monthly"></div>
-            <span>ทุกเดือน</span>
-          </div>
-          <div id="rec-monthly"></div>
-        </div>
+        <div id="rec-list-container"></div>
       </div>
 
       <!-- ══ PAGE: HANDOFF ══ -->
@@ -906,6 +891,73 @@
   </div>
 </div>
 
+<!-- Recurring Modal -->
+<div class="confirm-overlay" id="rec-modal-overlay">
+  <div class="confirm-box" style="width:480px;max-width:95vw">
+    <div class="confirm-title" style="color:var(--accent)" id="rec-modal-title">+ เพิ่มงานประจำ</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">ชื่องาน *</label>
+        <input class="form-input" id="rec-name" placeholder="เช่น เช็คยอดขายประจำวัน" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">ทีม</label>
+          <select class="form-select" id="rec-team">
+            <option value="">-- เลือกทีม --</option>
+            <option>Telesales</option><option>Live Streaming</option>
+            <option>Content</option><option>Admin/Office</option>
+            <option>HR</option><option>Management</option>
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">ผู้รับผิดชอบ</label>
+          <input class="form-input" id="rec-owner" placeholder="เช่น Kate" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">เช็คใคร</label>
+          <input class="form-input" id="rec-checkwho" placeholder="ชื่อคนที่ต้องตามเช็ค" />
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">Priority</label>
+          <select class="form-select" id="rec-priority">
+            <option value="⚪ Normal">⚪ Normal</option>
+            <option value="🔴 Urgent">🔴 Urgent</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">ความถี่ *</label>
+        <select class="form-select" id="rec-type" onchange="toggleRecFields()">
+          <option value="daily">ทุกวัน</option>
+          <option value="weekly">ทุกสัปดาห์ (เลือกวัน)</option>
+          <option value="monthly">ทุกเดือน (เลือกวันที่)</option>
+        </select>
+      </div>
+      <div id="rec-weekly-fields" style="display:none">
+        <label class="form-label" style="display:block;margin-bottom:8px">เลือกวันในสัปดาห์</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['อา','จ','อ','พ','พฤ','ศ','ส'].map((d,i)=>`<label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="${i}" style="accent-color:var(--accent)"> ${d}</label>`).join('')}
+        </div>
+      </div>
+      <div id="rec-monthly-fields" style="display:none">
+        <label class="form-label" style="display:block;margin-bottom:6px">วันที่ของเดือน (1-31)</label>
+        <input class="form-input" type="number" id="rec-date" min="1" max="31" placeholder="เช่น 25" style="width:120px" />
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">หมายเหตุ</label>
+        <input class="form-input" id="rec-note" placeholder="รายละเอียดเพิ่มเติม..." />
+      </div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeRecModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveRecurring2()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- Log Modal -->
 <div class="confirm-overlay" id="log-modal-overlay">
   <div class="confirm-box" style="width:500px;max-width:95vw">
@@ -1076,6 +1128,7 @@ async function initTasks() {
     saveTasks(tasks);
   }
   showLoading(false);
+  autoGenerateRecurring();
 
   // Update sync status pill
   const pill = document.getElementById('sync-status');
@@ -1090,30 +1143,33 @@ async function initTasks() {
 }
 
 // ─── Recurring templates ─────────────────────────────────────────────────────
-const recurring = {
-  daily: [
-    { name: 'เช็คยอดขาย Telesales รายวัน', team: 'Telesales', owner: 'Kate', handoff: 'พี่หมิว', priority: '🔴 Urgent', note: 'ดูยอดรายคน เทียบเป้า' },
-    { name: 'ติดตามผล Live ช่วงเช้า-เย็น', team: 'Live Streaming', owner: 'Kate', handoff: 'สแตมป์', priority: '⚪ Normal', note: 'ยอด + engagement' },
-    { name: 'ตรวจสอบ Comment/Inbox สินค้า', team: 'Admin/Office', owner: 'มุก', handoff: 'Kate', priority: '⚪ Normal', note: 'ตอบลูกค้าภายใน 2 ชม.' },
-    { name: 'เช็คออเดอร์และการจัดส่ง', team: 'Admin/Office', owner: 'พลอย', handoff: 'Kate', priority: '🔴 Urgent', note: 'ออเดอร์ที่ค้างส่ง' },
-  ],
-  weekly: [
-    { name: 'ประชุมสรุปยอดขายรายสัปดาห์', team: 'Management', owner: 'Kate', handoff: 'พี่หมิว', priority: '🔴 Urgent', note: 'ทุกจันทร์ — เตรียม slide', freq: 'ทุกจันทร์' },
-    { name: 'รีวิวผล KPI ทีม Telesales', team: 'Telesales', owner: 'Kate', handoff: 'หัวหน้าทีม', priority: '🔴 Urgent', note: 'ทุกศุกร์ — เทียบเป้ารายบุคคล', freq: 'ทุกศุกร์' },
-    { name: 'วางแผนตาราง Live สัปดาห์ถัดไป', team: 'Live Streaming', owner: 'สแตมป์', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกพฤหัส — ส่ง draft ให้ Kate', freq: 'ทุกพฤหัส' },
-    { name: 'เช็ค Content ที่ต้องโพสต์สัปดาห์นี้', team: 'Content', owner: 'ปลา', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกจันทร์ — ตรวจ caption + รูป', freq: 'ทุกจันทร์' },
-    { name: 'สรุปค่าใช้จ่าย + ของที่ต้องสั่ง', team: 'Admin/Office', owner: 'มุก', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกศุกร์ ก่อน 16.00', freq: 'ทุกศุกร์' },
-    { name: 'เช็คใบลา/OT พนักงานรายสัปดาห์', team: 'HR', owner: 'Kate', handoff: '-', priority: '⚪ Normal', note: 'ทุกศุกร์ — อัปเดตใน HR Tracker', freq: 'ทุกศุกร์' },
-  ],
-  monthly: [
-    { name: 'สรุปยอดขายรายเดือน ส่ง CEO', team: 'Management', owner: 'Kate', handoff: 'พี่หมิว', priority: '🔴 Urgent', note: 'ทุกสิ้นเดือน — ครบทุกช่องทาง' },
-    { name: 'ทำเงินเดือนพนักงาน', team: 'HR', owner: 'Kate', handoff: 'การเงิน', priority: '🔴 Urgent', note: 'ทุกวันที่ 25 — ตรวจ OT + หักลา' },
-    { name: 'ประเมิน KPI พนักงานรายเดือน', team: 'HR', owner: 'Kate', handoff: 'หัวหน้าทีม', priority: '🔴 Urgent', note: 'ทุกสิ้นเดือน' },
-    { name: 'วางแผน Content Calendar เดือนถัดไป', team: 'Content', owner: 'ปลา', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกวันที่ 20' },
-    { name: 'เช็คสต็อกสินค้าทุกตัว', team: 'Admin/Office', owner: 'พลอย', handoff: 'Kate', priority: '🔴 Urgent', note: 'ทุกวันที่ 1 — บันทึกลง Stock Sheet' },
-    { name: 'ต่ออายุสัญญา Influencer (ถ้ามี)', team: 'Content', owner: 'Kate', handoff: 'เบ็น', priority: '⚪ Normal', note: 'ทุกสิ้นเดือน' },
-  ]
-};
+// ─── Recurring templates (dynamic, user-editable) ───────────────────────────
+const REC_KEY = 'akane_recurring_v1';
+const DOW_NAMES = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+
+function loadRecurring() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REC_KEY) || 'null');
+    if (saved) return saved;
+  } catch(e) {}
+  // Default templates
+  return [
+    { id: 1, name: 'เช็คยอดขาย Telesales รายวัน', team: 'Telesales', owner: 'Kate', checkWho: 'พี่หมิว', priority: '🔴 Urgent', note: 'ดูยอดรายคน เทียบเป้า', type: 'daily', days: [], date: null, active: true },
+    { id: 2, name: 'ติดตามผล Live ช่วงเช้า-เย็น', team: 'Live Streaming', owner: 'Kate', checkWho: 'สแตมป์', priority: '⚪ Normal', note: 'ยอด + engagement', type: 'daily', days: [], date: null, active: true },
+    { id: 3, name: 'ตรวจสอบ Comment/Inbox สินค้า', team: 'Admin/Office', owner: 'มุก', checkWho: 'Kate', priority: '⚪ Normal', note: 'ตอบลูกค้าภายใน 2 ชม.', type: 'daily', days: [], date: null, active: true },
+    { id: 4, name: 'ประชุมสรุปยอดขายรายสัปดาห์', team: 'Management', owner: 'Kate', checkWho: 'พี่หมิว', priority: '🔴 Urgent', note: 'เตรียม slide', type: 'weekly', days: [1], date: null, active: true },
+    { id: 5, name: 'รีวิวผล KPI ทีม Telesales', team: 'Telesales', owner: 'Kate', checkWho: 'หัวหน้าทีม', priority: '🔴 Urgent', note: 'เทียบเป้ารายบุคคล', type: 'weekly', days: [5], date: null, active: true },
+    { id: 6, name: 'ทำเงินเดือนพนักงาน', team: 'HR', owner: 'Kate', checkWho: 'การเงิน', priority: '🔴 Urgent', note: 'ตรวจ OT + หักลา', type: 'monthly', days: [], date: 25, active: true },
+    { id: 7, name: 'เช็คสต็อกสินค้าทุกตัว', team: 'Admin/Office', owner: 'พลอย', checkWho: 'Kate', priority: '🔴 Urgent', note: 'บันทึกลง Stock Sheet', type: 'monthly', days: [], date: 1, active: true },
+  ];
+}
+
+function saveRecurring() {
+  localStorage.setItem(REC_KEY, JSON.stringify(recurringList));
+}
+
+let recurringList = loadRecurring();
+let recEditId = null;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function nextId() { return tasks.length ? Math.max(...tasks.map(t => t.id)) + 1 : 1; }
@@ -1268,26 +1324,103 @@ function renderAll() {
 }
 
 // ─── Recurring ────────────────────────────────────────────────────────────────
-function renderRecurring() {
-  ['daily','weekly','monthly'].forEach(key => {
-    const el = document.getElementById(`rec-${key}`);
-    el.innerHTML = recurring[key].map((r,i) => `
-      <div class="rec-card">
-        <div class="rec-info">
-          <div class="rec-name">${r.name}</div>
-          <div class="rec-meta">${r.team} · ${r.owner}${r.freq?' · '+r.freq:''} · ${r.priority}</div>
-        </div>
-        <button class="btn btn-sm" onclick="addFromRecurring('${key}',${i})">+ เพิ่มเข้างาน ↗</button>
-      </div>`).join('');
-  });
+// ─── Check if a recurring task should run today ──────────────────────────────
+function shouldRunToday(r) {
+  const now = new Date();
+  const dow = now.getDay();
+  const dom = now.getDate();
+  if (!r.active) return false;
+  if (r.type === 'daily') return true;
+  if (r.type === 'weekly') return r.days.includes(dow);
+  if (r.type === 'monthly') return r.date === dom;
+  return false;
 }
 
-function addFromRecurring(key, idx) {
-  const r = recurring[key][idx];
-  const t = getTodayStr();
-  tasks.unshift({ id: nextId(), name: r.name, team: r.team, owner: r.owner, handoff: r.handoff||'-', due: t, priority: r.priority, status: 'ยังไม่เริ่ม', followup: t, note: r.note||'', created: t, done: false });
-  saveTasks(tasks);
-  showToast(`เพิ่ม "${r.name}" แล้ว`);
+// ─── Auto-generate recurring tasks on app load ────────────────────────────────
+const LAST_RUN_KEY = 'akane_rec_lastrun';
+function autoGenerateRecurring() {
+  const todayStr = getTodayStr();
+  const lastRun = localStorage.getItem(LAST_RUN_KEY) || '';
+  if (lastRun === todayStr) return; // already ran today
+  let added = 0;
+  recurringList.forEach(r => {
+    if (!shouldRunToday(r)) return;
+    // Check if not already added today
+    const exists = tasks.some(t => t.recurringId === r.id && t.due === todayStr);
+    if (!exists) {
+      tasks.unshift({
+        id: nextId(), name: r.name, team: r.team, owner: r.owner,
+        handoff: r.checkWho || '-', due: todayStr, priority: r.priority,
+        status: 'ยังไม่เริ่ม', followup: todayStr, note: r.note || '',
+        link: r.link || '', handoffStatus: '', nextName: '', nextDue: '',
+        nextPriority: '', nextNote: '', created: todayStr, done: false,
+        recurringId: r.id, isRecurring: true
+      });
+      added++;
+    }
+  });
+  if (added > 0) {
+    saveTasks(tasks);
+    localStorage.setItem(LAST_RUN_KEY, todayStr);
+  }
+}
+
+// ─── Recurring type label ─────────────────────────────────────────────────────
+function recTypeLabel(r) {
+  if (r.type === 'daily') return 'ทุกวัน';
+  if (r.type === 'weekly') return 'ทุก' + (r.days.map(d => DOW_NAMES[d]).join(', ') || '?');
+  if (r.type === 'monthly') return `ทุกวันที่ ${r.date}`;
+  return '-';
+}
+
+function renderRecurring() {
+  const c = document.getElementById('rec-list-container');
+  if (!c) return;
+  const groups = { daily: [], weekly: [], monthly: [] };
+  recurringList.forEach(r => groups[r.type] && groups[r.type].push(r));
+
+  const sectionInfo = [
+    { key:'daily', label:'ทุกวัน', color:'#0d9488', bg:'#f0fdfa' },
+    { key:'weekly', label:'ทุกสัปดาห์', color:'#7c3aed', bg:'#f5f3ff' },
+    { key:'monthly', label:'ทุกเดือน', color:'#d97706', bg:'#fffbeb' },
+  ];
+
+  c.innerHTML = sectionInfo.map(s => {
+    const items = groups[s.key];
+    const cards = items.length === 0
+      ? `<div style="color:var(--text3);font-size:13px;padding:12px 0">ยังไม่มีงานประจำในกลุ่มนี้</div>`
+      : items.map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;${!r.active?'opacity:0.5':''}">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:var(--text)">${r.name} ${r.isRecurring?'':''}${!r.active?'<span style="font-size:10px;color:var(--text3)">(ปิด)</span>':''}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${r.team} · ${r.owner} · ${recTypeLabel(r)} · ${r.priority}</div>
+          </div>
+          <button class="btn btn-sm" onclick="toggleRec(${r.id})" style="font-size:11px">${r.active?'⏸ หยุด':'▶ เปิด'}</button>
+          <button class="btn btn-sm" onclick="openRecModal(${r.id})" style="font-size:11px">✏️</button>
+          <button class="btn btn-sm" onclick="deleteRec(${r.id})" style="font-size:11px;color:var(--coral)">🗑</button>
+        </div>`).join('');
+    return `
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:${s.bg};border-radius:8px;border:1px solid var(--border);margin-bottom:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+          <span style="font-weight:600;font-size:13px;color:${s.color}">${s.label}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:4px">— สร้างงานอัตโนมัติทุก${s.label.replace('ทุก','')}</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text3)">${items.filter(r=>r.active).length}/${items.length} งาน</span>
+        </div>
+        ${cards}
+      </div>`;
+  }).join('');
+}
+
+function toggleRec(id) {
+  const r = recurringList.find(x => x.id === id);
+  if (r) { r.active = !r.active; saveRecurring(); renderRecurring(); }
+}
+
+function deleteRec(id) {
+  if (!confirm('ลบงานประจำนี้ใช่ไหม?')) return;
+  recurringList = recurringList.filter(x => x.id !== id);
+  saveRecurring(); renderRecurring();
 }
 
 // ─── Handoff status badge ────────────────────────────────────────────────────
@@ -1702,11 +1835,33 @@ function renderCalendar() {
   const daysInPrev = new Date(calYear, calMonth, 0).getDate();
   const todayStr = getTodayStr();
 
-  // Map tasks by date
+  // Map real tasks by date
   const tasksByDate = {};
   tasks.filter(t => t.due).forEach(t => {
     if (!tasksByDate[t.due]) tasksByDate[t.due] = [];
     tasksByDate[t.due].push(t);
+  });
+
+  // Overlay recurring tasks for every day in this month (as preview dots)
+  const daysInMonthForRec = new Date(calYear, calMonth+1, 0).getDate();
+  recurringList.filter(r => r.active).forEach(r => {
+    for (let d = 1; d <= daysInMonthForRec; d++) {
+      const dt = new Date(calYear, calMonth, d);
+      const dow = dt.getDay();
+      const dom = dt.getDate();
+      let matches = false;
+      if (r.type === 'daily') matches = true;
+      else if (r.type === 'weekly') matches = r.days.includes(dow);
+      else if (r.type === 'monthly') matches = r.date === dom;
+      if (!matches) continue;
+      const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      // only add if not already a real task with same recurringId
+      const alreadyReal = (tasksByDate[dateStr]||[]).some(t => t.recurringId === r.id);
+      if (!alreadyReal) {
+        if (!tasksByDate[dateStr]) tasksByDate[dateStr] = [];
+        tasksByDate[dateStr].push({ id: null, name: r.name, team: r.team, owner: r.owner, priority: r.priority, status: 'ยังไม่เริ่ม', done: false, isRecurringPreview: true });
+      }
+    }
   });
 
   let cells = '';
@@ -1739,10 +1894,12 @@ function renderCalendar() {
 
     const dots = dayTasks.slice(0,3).map(t => {
       let dotStyle = 'font-size:10.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;';
-      if (t.done || t.status === 'เสร็จแล้ว') dotStyle += 'background:#f0fdf4;color:#15803d;text-decoration:line-through;opacity:0.65;border-left:2px solid #4ade80;';
+      if (t.isRecurringPreview) dotStyle += 'background:#faf5ff;color:#7c3aed;border-left:2px dashed #c084fc;opacity:0.75;';
+      else if (t.done || t.status === 'เสร็จแล้ว') dotStyle += 'background:#f0fdf4;color:#15803d;text-decoration:line-through;opacity:0.65;border-left:2px solid #4ade80;';
       else if (t.priority === '🔴 Urgent') dotStyle += 'background:#fef2f2;color:#be123c;border-left:2px solid #fb7185;';
       else dotStyle += 'background:#f5f3ff;color:#5b21b6;border-left:2px solid #a78bfa;';
-      return `<div style="${dotStyle}" title="${t.name}">${t.name}</div>`;
+      const icon = t.isRecurringPreview ? '🔄 ' : '';
+      return `<div style="${dotStyle}" title="${t.name}">${icon}${t.name}</div>`;
     }).join('');
     const more = dayTasks.length > 3 ? `<div style="font-size:10px;color:#9490a8;padding:1px 4px">+${dayTasks.length-3} งาน</div>` : '';
 
@@ -1794,6 +1951,70 @@ function renderCalDayTasks(dateStr) {
   el.innerHTML = `
     <div style="font-family:var(--font2);font-size:14px;font-weight:600;margin-bottom:10px;color:var(--accent)">📅 ${label} — ${dayTasks.length} งาน</div>
     <div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ─── Recurring Modal Functions ───────────────────────────────────────────────
+function toggleRecFields() {
+  const t = document.getElementById('rec-type').value;
+  document.getElementById('rec-weekly-fields').style.display = t === 'weekly' ? 'block' : 'none';
+  document.getElementById('rec-monthly-fields').style.display = t === 'monthly' ? 'block' : 'none';
+}
+
+function openRecModal(id) {
+  recEditId = id || null;
+  const r = id ? recurringList.find(x => x.id === id) : null;
+  document.getElementById('rec-modal-title').textContent = r ? '✏️ แก้ไขงานประจำ' : '+ เพิ่มงานประจำ';
+  document.getElementById('rec-name').value = r ? r.name : '';
+  document.getElementById('rec-team').value = r ? r.team : '';
+  document.getElementById('rec-owner').value = r ? r.owner : '';
+  document.getElementById('rec-checkwho').value = r ? r.checkWho : '';
+  document.getElementById('rec-priority').value = r ? r.priority : '⚪ Normal';
+  document.getElementById('rec-type').value = r ? r.type : 'daily';
+  document.getElementById('rec-note').value = r ? r.note : '';
+  document.getElementById('rec-date').value = r ? r.date || '' : '';
+  // Check DOW checkboxes
+  document.querySelectorAll('.rec-dow').forEach(cb => {
+    cb.checked = r && r.days ? r.days.includes(parseInt(cb.value)) : false;
+  });
+  toggleRecFields();
+  document.getElementById('rec-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('rec-name').focus(), 150);
+}
+
+function closeRecModal() {
+  document.getElementById('rec-modal-overlay').classList.remove('open');
+}
+
+function saveRecurring2() {
+  const name = document.getElementById('rec-name').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่องาน', 'error'); return; }
+  const type = document.getElementById('rec-type').value;
+  const days = type === 'weekly' ? Array.from(document.querySelectorAll('.rec-dow:checked')).map(c => parseInt(c.value)) : [];
+  const date = type === 'monthly' ? parseInt(document.getElementById('rec-date').value) || null : null;
+
+  const rec = {
+    id: recEditId || Date.now(),
+    name,
+    team: document.getElementById('rec-team').value,
+    owner: document.getElementById('rec-owner').value.trim(),
+    checkWho: document.getElementById('rec-checkwho').value.trim(),
+    priority: document.getElementById('rec-priority').value,
+    note: document.getElementById('rec-note').value.trim(),
+    type, days, date, active: true
+  };
+
+  if (recEditId) {
+    const idx = recurringList.findIndex(x => x.id === recEditId);
+    if (idx >= 0) recurringList[idx] = { ...recurringList[idx], ...rec };
+  } else {
+    recurringList.push(rec);
+  }
+  saveRecurring();
+  // Reset last run so new recurring gets picked up
+  localStorage.removeItem(LAST_RUN_KEY);
+  closeRecModal();
+  showToast(recEditId ? 'อัปเดตงานประจำแล้ว' : `เพิ่มงานประจำ "${name}" แล้ว`);
+  renderRecurring();
 }
 
 // ─── Loading overlay helpers ─────────────────────────────────────────────────
