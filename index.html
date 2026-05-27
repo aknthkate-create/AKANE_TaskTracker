@@ -574,8 +574,15 @@
         <span class="icon">🔄</span><span>งานประจำ</span>
       </div>
       <div class="nav-item" onclick="showPage('handoff')">
-        <span class="icon">📤</span><span>ส่งต่อแล้ว</span>
+        <span class="icon">📤</span><span>เช็คงาน</span>
         <span class="nav-badge red" id="badge-handoff">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('calendar')">
+        <span class="icon">📅</span><span>ปฏิทิน</span>
+      </div>
+      <div class="nav-item" onclick="showPage('log')">
+        <span class="icon">💬</span><span>บันทึกคุยงาน</span>
+        <span class="nav-badge" id="badge-log">0</span>
       </div>
       <div class="nav-item" onclick="showPage('done')">
         <span class="icon">✅</span><span>เสร็จแล้ว</span>
@@ -707,7 +714,7 @@
           </div>
         </div>
         <div class="section-header">
-          <div class="section-title">📤 งานที่ส่งต่อให้ทีม</div>
+          <div class="section-title">📤 งานที่สั่งทีมไว้ — เช็คสถานะ</div>
           <div class="section-line"></div>
           <span style="font-size:11px;color:var(--text3)">อัปเดต "สถานะของคนรับ" ได้ที่ปุ่ม ✏️</span>
         </div>
@@ -720,6 +727,44 @@
           </div>
           <div id="handoff-table-container"></div>
         </div>
+      </div>
+
+      <!-- ══ PAGE: CALENDAR ══ -->
+      <div class="page" id="page-calendar">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button class="btn" onclick="calPrev()" style="font-size:16px;padding:6px 14px">‹</button>
+          <div id="cal-title" style="font-family:var(--font2);font-size:20px;font-weight:700;flex:1;text-align:center;color:var(--accent)"></div>
+          <button class="btn" onclick="calToday()" style="font-size:12px">วันนี้</button>
+          <button class="btn" onclick="calNext()" style="font-size:16px;padding:6px 14px">›</button>
+        </div>
+        <!-- Calendar grid -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
+          <div id="cal-days-header" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));width:100%;border-bottom:2px solid var(--border)"></div>
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));width:100%"></div>
+        </div>
+        <!-- Selected day tasks -->
+        <div id="cal-day-tasks" style="margin-top:20px"></div>
+      </div>
+
+      <!-- ══ PAGE: LOG ══ -->
+      <div class="page" id="page-log">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+          <div class="search-box" style="max-width:240px">
+            <span style="color:var(--text3);font-size:14px">🔍</span>
+            <input type="text" id="log-search" placeholder="ค้นหาคน/เรื่อง..." oninput="renderLog()">
+          </div>
+          <select class="form-select" id="log-filter-team" onchange="renderLog()" style="width:160px;padding:6px 10px">
+            <option value="">ทุกทีม</option>
+            <option>Telesales</option>
+            <option>Live Streaming</option>
+            <option>Content</option>
+            <option>Admin/Office</option>
+            <option>HR</option>
+            <option>Management</option>
+          </select>
+          <button class="btn btn-primary" style="margin-left:auto" onclick="openLogModal()">+ บันทึกการคุย</button>
+        </div>
+        <div id="log-container"></div>
       </div>
 
       <!-- ══ PAGE: DONE ══ -->
@@ -765,8 +810,8 @@
         <input class="form-input" id="f-owner" placeholder="ชื่อ เช่น Kate, สแตมป์" />
       </div>
       <div class="form-group">
-        <label class="form-label">ส่งต่อให้ (ถ้ามี)</label>
-        <input class="form-input" id="f-handoff" placeholder="ชื่อ หรือ -" />
+        <label class="form-label">เช็คใคร (ถ้ามี)</label>
+        <input class="form-input" id="f-handoff" placeholder="ชื่อคนที่ต้องตามเช็ค" />
       </div>
       <div class="form-group">
         <label class="form-label">Due Date *</label>
@@ -797,13 +842,45 @@
         <textarea class="form-textarea" id="f-note" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
       </div>
       <div class="form-group full" id="handoff-status-group" style="display:none">
-        <label class="form-label">สถานะของคนรับ (ส่งต่อแล้ว)</label>
+        <label class="form-label">สถานะของคนที่เช็ค</label>
         <select class="form-select" id="f-handoff-status">
           <option value="รอดำเนินการ">⏳ รอดำเนินการ</option>
           <option value="กำลังทำ">🔵 กำลังทำ</option>
           <option value="เสร็จแล้ว">✅ เสร็จแล้ว</option>
           <option value="ติดปัญหา">🚨 ติดปัญหา</option>
         </select>
+      </div>
+
+      <!-- ── Next Action section ── -->
+      <div class="form-group full" style="border-top:1px solid var(--border);padding-top:14px;margin-top:2px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:600;color:var(--accent)">➡️ งานต่อ (Next Action)</span>
+          <span style="font-size:11px;color:var(--text3)">— พอเสร็จแล้วจะโผล่อัตโนมัติ</span>
+          <label style="margin-left:auto;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text2)">
+            <input type="checkbox" id="f-has-next" onchange="toggleNextFields()" style="accent-color:var(--accent)"> มีงานต่อ
+          </label>
+        </div>
+        <div id="next-action-fields" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group full" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+            <label class="form-label">ชื่องานต่อ *</label>
+            <input class="form-input" id="f-next-name" placeholder="เช่น แจ้งจ๋า OT วันหยุด 2,000 บาท" />
+          </div>
+          <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+            <label class="form-label">Due Date ของงานต่อ</label>
+            <input class="form-input" type="date" id="f-next-due" />
+          </div>
+          <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="f-next-priority">
+              <option value="⚪ Normal">⚪ Normal</option>
+              <option value="🔴 Urgent">🔴 Urgent</option>
+            </select>
+          </div>
+          <div class="form-group full" style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px">
+            <label class="form-label">หมายเหตุงานต่อ</label>
+            <input class="form-input" id="f-next-note" placeholder="รายละเอียดเพิ่มเติม..." />
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -825,6 +902,86 @@
   </div>
 </div>
 
+<!-- Log Modal -->
+<div class="confirm-overlay" id="log-modal-overlay">
+  <div class="confirm-box" style="width:500px;max-width:95vw">
+    <div class="confirm-title" style="color:var(--accent)">💬 บันทึกการคุยงาน</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">วันที่คุย *</label>
+          <input class="form-input" type="date" id="lg-date" />
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">ทีม</label>
+          <select class="form-select" id="lg-team">
+            <option value="">-- เลือกทีม --</option>
+            <option>Telesales</option><option>Live Streaming</option>
+            <option>Content</option><option>Admin/Office</option>
+            <option>HR</option><option>Management</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">คุยกับใคร *</label>
+        <input class="form-input" id="lg-person" placeholder="เช่น สแตมป์, มุก, จ๋า" />
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">เรื่องที่คุย *</label>
+        <input class="form-input" id="lg-topic" placeholder="เช่น ตารางไลฟ์สัปดาห์หน้า" />
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">ผลที่ได้ / สิ่งที่ขอไป</label>
+        <textarea class="form-textarea" id="lg-result" placeholder="เช่น ขอให้ส่ง draft ภายในพรุ่งนี้ / ได้ตัวเลขสต็อก 180 ชิ้น" style="min-height:60px"></textarea>
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">งานที่เกิดขึ้น (ถ้ามี)</label>
+        <input class="form-input" id="lg-task" placeholder="เช่น ต้องส่ง report ภายใน 2/6" />
+      </div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeLogModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveLog2()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Next Action Modal -->
+<div class="confirm-overlay" id="nextaction-overlay">
+  <div class="confirm-box" style="width:420px;max-width:95vw">
+    <div class="confirm-title" style="color:var(--accent)">🎉 งานเสร็จแล้ว!</div>
+    <div class="confirm-msg" id="nextaction-taskname" style="font-weight:500;color:var(--text);margin-bottom:4px"></div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:16px">มีงานที่ต้องทำต่อจากงานนี้ไหม?</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">ชื่องานต่อ</label>
+        <input class="form-input" id="na-name" placeholder="เช่น แจ้งจ๋า OT วันหยุด 2,000 บาท" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" type="date" id="na-due" />
+        </div>
+        <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+          <label class="form-label">Priority</label>
+          <select class="form-select" id="na-priority">
+            <option value="⚪ Normal">⚪ Normal</option>
+            <option value="🔴 Urgent">🔴 Urgent</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;flex-direction:column;gap:6px">
+        <label class="form-label">หมายเหตุ</label>
+        <input class="form-input" id="na-note" placeholder="รายละเอียดเพิ่มเติม..." />
+      </div>
+    </div>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeNextAction()">ไม่มีงานต่อ</button>
+      <button class="btn btn-primary" onclick="saveNextAction()">+ เพิ่มงานต่อ</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"><span>✓</span><span id="toast-msg"></span></div>
 
@@ -833,6 +990,18 @@
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxok4p7ogt2C2W-MnZVXCK0AQV1XJsLklxD41of0OEsacllmq0n4UW1hxuHS4n97ucj/exec';
 const STORAGE_KEY = 'akane_tasks_v2';
 let GAS_READY = (GAS_URL !== 'YOUR_APPS_SCRIPT_URL_HERE');
+
+const LOG_KEY = 'akane_log_v1';
+function loadLog() { try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch { return []; } }
+function saveLog(l) { localStorage.setItem(LOG_KEY, JSON.stringify(l)); if (GAS_READY) gasSetLog(l).catch(()=>{}); }
+async function gasSetLog(l) {
+  await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'setLog', log: l }) });
+}
+async function gasGetLog() {
+  const r = await fetch(GAS_URL + '?action=getLog');
+  const j = await r.json(); return j.log || [];
+}
+let logs = loadLog();
 
 function getTodayStr() {
   return new Date().toISOString().split('T')[0];
@@ -875,8 +1044,9 @@ async function initTasks() {
   showLoading(true);
   if (GAS_READY) {
     try {
-      tasks = await gasGet();
-      saveLocal(tasks); // sync local ด้วย
+      [tasks] = await Promise.all([gasGet()]);
+      saveLocal(tasks);
+      try { logs = await gasGetLog(); saveLog(logs); } catch(e) { logs = loadLog(); } // sync local ด้วย
     } catch(e) {
       tasks = loadLocal();
       showToast('ออฟไลน์ — ใช้ข้อมูลในเครื่อง');
@@ -983,13 +1153,13 @@ function showToast(msg, type='success') {
 }
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
-const pageTitles = { today: '📋 งานวันนี้', all: '📝 งานทั้งหมด', recurring: '🔄 งานประจำ', handoff: '📤 งานที่ส่งต่อแล้ว', done: '✅ งานที่เสร็จแล้ว' };
+const pageTitles = { today: '📋 งานวันนี้', all: '📝 งานทั้งหมด', recurring: '🔄 งานประจำ', handoff: '📤 เช็คงานทีม', calendar: '📅 ปฏิทินงาน', log: '💬 บันทึกการคุยงาน', done: '✅ งานที่เสร็จแล้ว' };
 
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`page-${id}`).classList.add('active');
-  document.querySelectorAll('.nav-item')[['today','all','recurring','handoff','done'].indexOf(id)].classList.add('active');
+  document.querySelectorAll('.nav-item')[['today','all','recurring','handoff','calendar','log','done'].indexOf(id)].classList.add('active');
   document.getElementById('page-title').textContent = pageTitles[id];
   renderPage(id);
 }
@@ -999,6 +1169,8 @@ function renderPage(id) {
   else if (id === 'all') renderAll();
   else if (id === 'recurring') renderRecurring();
   else if (id === 'handoff') renderHandoff();
+  else if (id === 'calendar') renderCalendar();
+  else if (id === 'log') renderLog();
   else if (id === 'done') renderDone();
 }
 
@@ -1012,10 +1184,10 @@ function taskRow(t, showDone=false) {
   const rowClass = showDone ? 'done-row' : (overdue ? 'overdue-row' : '');
   const nameClass = showDone ? 'done-strike' : 'task-name';
   return `<tr class="${rowClass}">
-    <td><div class="${nameClass}">${t.name}</div>${t.note?`<div class="task-note">${t.note}</div>`:''}</td>
+    <td><div class="${nameClass}">${t.name}${t.nextName && !showDone ? ` <span style="font-size:10px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:20px;padding:1px 7px;margin-left:4px">➡️ ${t.nextName}</span>` : ''}</div>${t.note?`<div class="task-note">${t.note}</div>`:''}</td>
     <td><span class="badge badge-team">${t.team||'-'}</span></td>
     <td style="color:var(--text2)">${t.owner||'-'}</td>
-    <td style="color:var(--text3)">${t.handoff||'-'}</td>
+    <td style="color:var(--text2);font-weight:500">${t.handoff && t.handoff !== '-' ? '👤 '+t.handoff : '-'}</td>
     <td>${overdue ? `<span class="badge badge-overdue">${fmtDate(t.due)}</span>` : `<span style="font-size:12px;color:var(--text2)">${fmtDate(t.due)}</span>`}</td>
     <td>${priorityBadge(t.priority)}</td>
     <td>${statusBadge(t.status)}</td>
@@ -1157,7 +1329,7 @@ function renderHandoff() {
     return `<tr class="${overdue ? 'overdue-row' : ''}">
       <td><div class="task-name">${t.name}</div>${t.note ? `<div class="task-note">${t.note}</div>` : ''}</td>
       <td><span class="badge badge-team">${t.team||'-'}</span></td>
-      <td style="font-weight:500;color:var(--accent)">${t.handoff}</td>
+      <td style="font-weight:500;color:var(--accent)">👤 ${t.handoff}</td>
       <td>${handoffStatusBadge(t.handoffStatus)}</td>
       <td>${overdue ? `<span class="badge badge-overdue">${fmtDate(t.due)}</span>` : `<span style="font-size:12px;color:var(--text2)">${fmtDate(t.due)}</span>`}</td>
       <td>${priorityBadge(t.priority)}</td>
@@ -1170,8 +1342,79 @@ function renderHandoff() {
   }).join('');
 
   c.innerHTML = `<table><thead><tr>
-    <th>ชื่องาน</th><th>ทีม</th><th>ส่งต่อให้</th><th>สถานะของคนรับ</th><th>Due Date</th><th>Priority</th><th></th>
+    <th>ชื่องาน</th><th>ทีม</th><th>เช็คใคร</th><th>สถานะ</th><th>Due Date</th><th>Priority</th><th></th>
   </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─── Log ─────────────────────────────────────────────────────────────────────
+function openLogModal(id) {
+  document.getElementById('lg-date').value = getTodayStr();
+  document.getElementById('lg-team').value = '';
+  document.getElementById('lg-person').value = '';
+  document.getElementById('lg-topic').value = '';
+  document.getElementById('lg-result').value = '';
+  document.getElementById('lg-task').value = '';
+  document.getElementById('log-modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('lg-person').focus(), 150);
+}
+function closeLogModal() { document.getElementById('log-modal-overlay').classList.remove('open'); }
+
+function saveLog2() {
+  const person = document.getElementById('lg-person').value.trim();
+  const topic  = document.getElementById('lg-topic').value.trim();
+  if (!person || !topic) { showToast('กรุณาใส่ชื่อคนและเรื่องที่คุย','error'); return; }
+  const entry = {
+    id: Date.now(),
+    date: document.getElementById('lg-date').value,
+    team: document.getElementById('lg-team').value,
+    person, topic,
+    result: document.getElementById('lg-result').value.trim(),
+    taskNote: document.getElementById('lg-task').value.trim(),
+  };
+  logs.unshift(entry);
+  saveLog(logs);
+  document.getElementById('badge-log').textContent = logs.length || '';
+  closeLogModal();
+  showToast(`บันทึกการคุยกับ "${person}" แล้ว`);
+  if (document.querySelector('.nav-item.active').getAttribute('onclick').includes('log')) renderLog();
+}
+
+function deleteLog(id) {
+  logs = logs.filter(l => l.id !== id);
+  saveLog(logs);
+  document.getElementById('badge-log').textContent = logs.length || '';
+  renderLog();
+}
+
+function renderLog() {
+  const q = (document.getElementById('log-search')?.value || '').toLowerCase();
+  const team = document.getElementById('log-filter-team')?.value || '';
+  let list = [...logs];
+  if (q) list = list.filter(l => (l.person+l.topic+l.result+l.taskNote+l.team).toLowerCase().includes(q));
+  if (team) list = list.filter(l => l.team === team);
+
+  document.getElementById('badge-log').textContent = logs.length || '';
+
+  const c = document.getElementById('log-container');
+  if (!c) return;
+  if (list.length === 0) { c.innerHTML = emptyState('ยังไม่มีบันทึกการคุยงาน — กด "+ บันทึกการคุย" ได้เลย'); return; }
+
+  c.innerHTML = list.map(l => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-size:12px;color:var(--text3)">${fmtDate(l.date)}</span>
+            ${l.team ? `<span class="badge badge-team">${l.team}</span>` : ''}
+            <span style="font-weight:600;color:var(--accent);font-size:13px">👤 ${l.person}</span>
+          </div>
+          <div style="font-weight:500;font-size:14px;color:var(--text);margin-bottom:4px">📌 ${l.topic}</div>
+          ${l.result ? `<div style="font-size:12px;color:var(--text2);margin-bottom:3px">✅ ผลที่ได้: ${l.result}</div>` : ''}
+          ${l.taskNote ? `<div style="font-size:12px;color:var(--amber);margin-top:4px">➡️ งานที่ต้องทำ: ${l.taskNote}</div>` : ''}
+        </div>
+        <button class="action-btn delete" onclick="deleteLog(${l.id})" title="ลบ" style="flex-shrink:0">🗑</button>
+      </div>
+    </div>`).join('');
 }
 
 // ─── Done ─────────────────────────────────────────────────────────────────────
@@ -1184,6 +1427,13 @@ function renderDone() {
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
+function toggleNextFields() {
+  const cb = document.getElementById('f-has-next');
+  const fields = document.getElementById('next-action-fields');
+  fields.style.display = cb.checked ? 'grid' : 'none';
+  if (cb.checked) document.getElementById('f-next-name').focus();
+}
+
 function toggleHandoffStatusField() {
   const handoff = document.getElementById('f-handoff').value.trim();
   const group = document.getElementById('handoff-status-group');
@@ -1200,6 +1450,13 @@ function openModal() {
   document.getElementById('f-handoff-status').value = 'รอดำเนินการ';
   document.getElementById('handoff-status-group').style.display = 'none';
   document.getElementById('f-handoff').oninput = toggleHandoffStatusField;
+  // reset next action
+  document.getElementById('f-has-next').checked = false;
+  document.getElementById('next-action-fields').style.display = 'none';
+  document.getElementById('f-next-name').value = '';
+  document.getElementById('f-next-due').value = getTodayStr();
+  document.getElementById('f-next-priority').value = '⚪ Normal';
+  document.getElementById('f-next-note').value = '';
   document.getElementById('task-modal').classList.add('open');
 }
 
@@ -1222,6 +1479,14 @@ function openEditModal(id) {
   const hv = t.handoff && t.handoff !== '-' && t.handoff !== '';
   group.style.display = hv ? 'flex' : 'none';
   document.getElementById('f-handoff').oninput = toggleHandoffStatusField;
+  // next action
+  const hasNext = !!(t.nextName);
+  document.getElementById('f-has-next').checked = hasNext;
+  document.getElementById('next-action-fields').style.display = hasNext ? 'grid' : 'none';
+  document.getElementById('f-next-name').value = t.nextName || '';
+  document.getElementById('f-next-due').value = t.nextDue || getTodayStr();
+  document.getElementById('f-next-priority').value = t.nextPriority || '⚪ Normal';
+  document.getElementById('f-next-note').value = t.nextNote || '';
   document.getElementById('task-modal').classList.add('open');
 }
 
@@ -1241,6 +1506,10 @@ function saveTask() {
     followup: document.getElementById('f-followup').value,
     note: document.getElementById('f-note').value.trim(),
     handoffStatus: (handoffVal && handoffVal !== '-') ? document.getElementById('f-handoff-status').value : '',
+    nextName: document.getElementById('f-has-next').checked ? document.getElementById('f-next-name').value.trim() : '',
+    nextDue: document.getElementById('f-has-next').checked ? document.getElementById('f-next-due').value : '',
+    nextPriority: document.getElementById('f-has-next').checked ? document.getElementById('f-next-priority').value : '',
+    nextNote: document.getElementById('f-has-next').checked ? document.getElementById('f-next-note').value.trim() : '',
     created: getTodayStr(), done: false
   };
   if (editingId) {
@@ -1257,12 +1526,77 @@ function saveTask() {
 }
 
 // ─── Mark done ────────────────────────────────────────────────────────────────
+let _doneFromId = null;
+
 function markDone(id) {
   const t = tasks.find(x => x.id === id);
   if (!t) return;
   t.done = true; t.status = 'เสร็จแล้ว'; t.doneDate = getTodayStr();
+
+  // If task has pre-defined next action — auto-create it
+  if (t.nextName) {
+    const nextTask = {
+      id: nextId(), name: t.nextName, team: t.team, owner: t.owner,
+      handoff: t.handoff || '-', due: t.nextDue || getTodayStr(),
+      priority: t.nextPriority || '⚪ Normal', status: 'ยังไม่เริ่ม',
+      followup: t.nextDue || getTodayStr(), note: t.nextNote || '',
+      handoffStatus: '', nextName: '', nextDue: '', nextPriority: '', nextNote: '',
+      created: getTodayStr(), done: false, fromTask: id
+    };
+    tasks.unshift(nextTask);
+    saveTasks(tasks);
+    showToast(`✓ เสร็จแล้ว! งานต่อ "${t.nextName}" โผล่แล้ว`);
+    const curPage = document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+    renderPage(curPage);
+    return;
+  }
+
   saveTasks(tasks);
-  showToast(`"${t.name}" เสร็จแล้ว ✓`);
+  const curPage = document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+  renderPage(curPage);
+  // Show next action popup (ถ้าไม่ได้ใส่ล่วงหน้า)
+  _doneFromId = id;
+  document.getElementById('nextaction-taskname').textContent = `"${t.name}"`;
+  document.getElementById('na-name').value = '';
+  document.getElementById('na-due').value = getTodayStr();
+  document.getElementById('na-priority').value = '⚪ Normal';
+  document.getElementById('na-note').value = '';
+  document.getElementById('nextaction-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('na-name').focus(), 200);
+}
+
+function closeNextAction() {
+  document.getElementById('nextaction-overlay').classList.remove('open');
+  const t = tasks.find(x => x.id === _doneFromId);
+  if (t) showToast(`"${t.name}" เสร็จแล้ว ✓`);
+  _doneFromId = null;
+}
+
+function saveNextAction() {
+  const name = document.getElementById('na-name').value.trim();
+  if (!name) { document.getElementById('na-name').focus(); return; }
+  const srcTask = tasks.find(x => x.id === _doneFromId);
+  const newTask = {
+    id: nextId(),
+    name,
+    team: srcTask ? srcTask.team : '',
+    owner: srcTask ? srcTask.owner : '',
+    handoff: srcTask ? srcTask.handoff : '-',
+    due: document.getElementById('na-due').value,
+    priority: document.getElementById('na-priority').value,
+    status: 'ยังไม่เริ่ม',
+    followup: document.getElementById('na-due').value,
+    note: document.getElementById('na-note').value.trim(),
+    handoffStatus: '',
+    created: getTodayStr(),
+    done: false,
+    fromTask: _doneFromId
+  };
+  tasks.unshift(newTask);
+  saveTasks(tasks);
+  document.getElementById('nextaction-overlay').classList.remove('open');
+  showToast(`เพิ่มงานต่อ "${name}" แล้ว ✓`);
+  _doneFromId = null;
   const curPage = document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1];
   renderPage(curPage);
 }
@@ -1320,6 +1654,139 @@ function handleImport(e) {
   e.target.value = '';
 }
 
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+let calYear, calMonth, calSelectedDate;
+
+function calInit() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  calSelectedDate = getTodayStr();
+}
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+function calToday() {
+  const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
+  calSelectedDate = getTodayStr(); renderCalendar();
+}
+
+function renderCalendar() {
+  if (calYear === undefined) calInit();
+  const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const thDays = [
+    {l:'วันอาทิตย์',s:'sun'},{l:'วันจันทร์',s:''},{l:'วันอังคาร',s:''},{l:'วันพุธ',s:''},
+    {l:'วันพฤหัส',s:''},{l:'วันศุกร์',s:''},{l:'วันเสาร์',s:'sat'}
+  ];
+
+  document.getElementById('cal-title').textContent = `${thMonths[calMonth]}  ${calYear + 543}`;
+
+  // Day headers
+  const hdr = document.getElementById('cal-days-header');
+  hdr.innerHTML = thDays.map(d => {
+    let color = d.s === 'sun' ? '#e11d48' : d.s === 'sat' ? '#7c3aed' : '#52496e';
+    let bg = d.s === 'sun' ? '#fff5f7' : d.s === 'sat' ? '#f8f5ff' : '#fafafa';
+    return `<div style="padding:10px 6px;text-align:center;font-size:12px;font-weight:600;color:${color};background:${bg};letter-spacing:0.2px">${d.l}</div>`;
+  }).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+  const todayStr = getTodayStr();
+
+  // Map tasks by date
+  const tasksByDate = {};
+  tasks.filter(t => t.due).forEach(t => {
+    if (!tasksByDate[t.due]) tasksByDate[t.due] = [];
+    tasksByDate[t.due].push(t);
+  });
+
+  let cells = '';
+  const baseDay = 'min-height:110px;border-right:1px solid #e5e3f0;border-bottom:1px solid #e5e3f0;padding:8px 8px 6px;cursor:pointer;transition:background 0.1s;';
+
+  // Prev month fillers
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrev - i;
+    cells += `<div style="${baseDay}background:#f8f7fb;opacity:0.5"><div style="font-size:15px;font-weight:500;color:#bbb;width:32px;height:32px;display:flex;align-items:center;justify-content:center">${d}</div></div>`;
+  }
+
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(calYear, calMonth, d).getDay();
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr === calSelectedDate;
+    const dayTasks = tasksByDate[dateStr] || [];
+
+    let bg = '#ffffff';
+    let numColor = '#52496e';
+    let numBg = 'transparent';
+    let borderExtra = '';
+    if (dow === 0) { bg = '#fff5f7'; numColor = '#e11d48'; }
+    else if (dow === 6) { bg = '#f8f5ff'; numColor = '#7c3aed'; }
+    if (isToday) { bg = '#f0edff'; numBg = '#7c3aed'; numColor = '#fff'; }
+    if (isSelected) borderExtra = 'outline:2.5px solid #7c3aed;outline-offset:-2px;';
+
+    const numStyle = `font-family:'Prompt',sans-serif;font-size:17px;font-weight:600;color:${numColor};width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:${numBg};margin-bottom:5px;`;
+
+    const dots = dayTasks.slice(0,3).map(t => {
+      let dotStyle = 'font-size:10.5px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;';
+      if (t.done || t.status === 'เสร็จแล้ว') dotStyle += 'background:#f0fdf4;color:#15803d;text-decoration:line-through;opacity:0.65;border-left:2px solid #4ade80;';
+      else if (t.priority === '🔴 Urgent') dotStyle += 'background:#fef2f2;color:#be123c;border-left:2px solid #fb7185;';
+      else dotStyle += 'background:#f5f3ff;color:#5b21b6;border-left:2px solid #a78bfa;';
+      return `<div style="${dotStyle}" title="${t.name}">${t.name}</div>`;
+    }).join('');
+    const more = dayTasks.length > 3 ? `<div style="font-size:10px;color:#9490a8;padding:1px 4px">+${dayTasks.length-3} งาน</div>` : '';
+
+    cells += `<div style="${baseDay}background:${bg};${borderExtra}" onmouseover="this.style.filter='brightness(0.97)'" onmouseout="this.style.filter=''" onclick="calSelectDay('${dateStr}')">
+      <div style="${numStyle}">${d}</div>
+      ${dots}${more}
+    </div>`;
+  }
+
+  // Next month fillers
+  const total = firstDay + daysInMonth;
+  const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= remaining; d++) {
+    cells += `<div style="${baseDay}background:#f8f7fb;opacity:0.5"><div style="font-size:15px;font-weight:500;color:#bbb;width:32px;height:32px;display:flex;align-items:center;justify-content:center">${d}</div></div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = cells;
+  renderCalDayTasks(calSelectedDate);
+}
+
+function calSelectDay(dateStr) {
+  calSelectedDate = dateStr;
+  renderCalendar();
+}
+
+function renderCalDayTasks(dateStr) {
+  const el = document.getElementById('cal-day-tasks');
+  if (!el || !dateStr) return;
+  const dayTasks = tasks.filter(t => t.due === dateStr);
+  const [y,m,d] = dateStr.split('-');
+  const label = `${parseInt(d)} / ${parseInt(m)} / ${parseInt(y)+543}`;
+  if (dayTasks.length === 0) {
+    el.innerHTML = `<div style="color:var(--text3);font-size:13px;padding:12px 0">📅 ${label} — ไม่มีงาน</div>`;
+    return;
+  }
+  const cols = ['ชื่องาน','ทีม','ผู้รับผิดชอบ','Priority','สถานะ',''];
+  const rows = dayTasks.map(t => `<tr class="${t.done||t.status==='เสร็จแล้ว'?'done-row':''}">
+    <td><div class="${t.done||t.status==='เสร็จแล้ว'?'done-strike':'task-name'}">${t.name}</div>${t.note?`<div class="task-note">${t.note}</div>`:''}</td>
+    <td><span class="badge badge-team">${t.team||'-'}</span></td>
+    <td style="color:var(--text2)">${t.owner||'-'}</td>
+    <td>${t.priority==='🔴 Urgent'?'<span class="badge badge-urgent">🔴 Urgent</span>':'<span class="badge badge-normal">⚪ Normal</span>'}</td>
+    <td>${statusBadge(t.status)}</td>
+    <td><div class="action-group">
+      <button class="action-btn" onclick="openEditModal(${t.id})">✏️</button>
+      ${!t.done&&t.status!=='เสร็จแล้ว'?`<button class="action-btn done" onclick="markDone(${t.id})">✓</button>`:''}
+    </div></td>
+  </tr>`).join('');
+  el.innerHTML = `
+    <div style="font-family:var(--font2);font-size:14px;font-weight:600;margin-bottom:10px;color:var(--accent)">📅 ${label} — ${dayTasks.length} งาน</div>
+    <div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 // ─── Loading overlay helpers ─────────────────────────────────────────────────
 function showLoading(on) {
   document.getElementById('loading-overlay').style.display = on ? 'flex' : 'none';
@@ -1328,6 +1795,7 @@ function showLoading(on) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.getElementById('today-label').textContent = new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 document.getElementById('task-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+calInit();
 initTasks();
 </script>
 </body>
