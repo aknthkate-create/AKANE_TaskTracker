@@ -939,7 +939,13 @@
       <div id="rec-weekly-fields" style="display:none">
         <label class="form-label" style="display:block;margin-bottom:8px">เลือกวันในสัปดาห์</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${['อา','จ','อ','พ','พฤ','ศ','ส'].map((d,i)=>`<label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="${i}" style="accent-color:var(--accent)"> ${d}</label>`).join('')}
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="0" style="accent-color:#7c3aed"> อา</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="1" style="accent-color:#7c3aed"> จ</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="2" style="accent-color:#7c3aed"> อ</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="3" style="accent-color:#7c3aed"> พ</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="4" style="accent-color:#7c3aed"> พฤ</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="5" style="accent-color:#7c3aed"> ศ</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:20px;font-size:12px"><input type="checkbox" class="rec-dow" value="6" style="accent-color:#7c3aed"> ส</label>
         </div>
       </div>
       <div id="rec-monthly-fields" style="display:none">
