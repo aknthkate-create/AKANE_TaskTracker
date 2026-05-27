@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AKANE Task Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f8;
+    --bg2: #ffffff;
+    --bg3: #f0eff5;
+    --bg4: #e8e7f0;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --accent: #7c3aed;
+    --accent2: #6d28d9;
+    --accent3: #5b21b6;
+    --teal: #0d9488;
+    --teal2: #0f766e;
+    --coral: #e11d48;
+    --amber: #d97706;
+    --green: #16a34a;
+    --text: #1a1826;
+    --text2: #52496e;
+    --text3: #9490a8;
+    --font: 'Sarabun', sans-serif;
+    --font2: 'Prompt', sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 0 0 1px rgba(124,58,237,0.1), 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ─── Sidebar ─── */
+  .layout { display: flex; min-height: 100vh; }
+  
+  .sidebar {
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-title {
+    font-family: var(--font2);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .nav { flex: 1; padding: 12px 10px; }
+  .nav-label { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 1px; padding: 0 8px 6px; text-transform: uppercase; margin-top: 12px; }
+  .nav-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13.5px;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    margin-bottom: 2px;
+    user-select: none;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active {
+    background: #f5f3ff;
+    color: var(--accent);
+    border-color: #ddd6fe;
+  }
+  .nav-item .icon { font-size: 16px; width: 18px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 20px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .nav-badge.red { background: #e11d48; }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* ─── Main ─── */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    background: rgba(245,244,248,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 50;
+  }
+  .topbar-title { font-family: var(--font2); font-size: 16px; font-weight: 600; flex: 1; }
+  .topbar-date { font-size: 12px; color: var(--text3); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg4); border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent3), var(--accent2));
+    border-color: transparent;
+    color: white;
+    font-weight: 500;
+  }
+  .btn-primary:hover { opacity: 0.9; color: white; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-danger { border-color: rgba(251,113,133,0.3); }
+  .btn-danger:hover { background: rgba(251,113,133,0.1); border-color: var(--coral); color: var(--coral); }
+
+  .content { padding: 24px 28px; flex: 1; }
+
+  /* ─── Today Dashboard ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.purple::before { background: var(--accent); }
+  .stat-card.teal::before { background: #0d9488; }
+  .stat-card.coral::before { background: #e11d48; }
+  .stat-card.amber::before { background: #d97706; }
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+  .stat-num { font-family: var(--font2); font-size: 28px; font-weight: 600; margin: 4px 0 2px; color: var(--text); }
+  .stat-sub { font-size: 11px; color: var(--text3); }
+
+  /* ─── Section header ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .section-title { font-family: var(--font2); font-size: 15px; font-weight: 600; }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ─── Task Table ─── */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    flex: 1;
+    max-width: 280px;
+  }
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--text3); }
+  .filter-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    font-family: var(--font);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.1s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody td { padding: 11px 14px; font-size: 13px; vertical-align: middle; }
+
+  /* ─── Badges ─── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-urgent { background: #fef2f2; color: #be123c; border: 1px solid #fecdd3; }
+  .badge-normal { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+  .badge-doing { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+  .badge-done { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .badge-wait { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .badge-stuck { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+  .badge-cancel { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; }
+  .badge-team { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 10px; }
+  .badge-overdue { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+  /* ─── Task name cell ─── */
+  .task-name { font-weight: 500; color: var(--text); line-height: 1.4; }
+  .task-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .overdue-row td:first-child { border-left: 2px solid var(--coral); }
+
+  /* ─── Action buttons ─── */
+  .action-group { display: flex; gap: 4px; }
+  .action-btn {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+  .action-btn.done:hover { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+  .action-btn.delete:hover { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+
+  /* ─── Modal ─── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 24px;
+    width: 540px;
+    max-width: 95vw;
+    box-shadow: var(--shadow);
+    transform: translateY(10px);
+    transition: transform 0.2s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-family: var(--font2); font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--accent); }  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+  .form-input, .form-select, .form-textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 2px rgba(168,85,247,0.1);
+  }
+  .form-select option { background: var(--bg3); }
+  .form-textarea { resize: vertical; min-height: 68px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ─── Recurring Section ─── */
+  .rec-section { margin-bottom: 28px; }
+  .rec-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 8px 14px;
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .rec-section-title span { font-weight: 600; font-size: 13px; }
+  .rec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .rec-daily { background: #0d9488; }
+  .rec-weekly { background: #7c3aed; }
+  .rec-monthly { background: #d97706; }
+  .rec-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    transition: border-color 0.15s;
+  }
+  .rec-card:hover { border-color: var(--border2); }
+  .rec-info { flex: 1; }
+  .rec-name { font-size: 13px; font-weight: 500; }
+  .rec-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* ─── Done archive ─── */
+  .done-row { opacity: 0.65; }
+  .done-row:hover { opacity: 0.85; }
+  .done-strike { text-decoration: line-through; color: var(--text3); }
+
+  /* ─── Empty state ─── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; }
+
+  /* ─── Toast ─── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    color: var(--text);
+    font-size: 13px;
+    z-index: 999;
+    transform: translateY(80px);
+    transition: transform 0.3s;
+    max-width: 300px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.show { transform: translateY(0); }
+  .toast.success { border-color: rgba(74,222,128,0.3); }
+  .toast.success span:first-child { color: var(--green); }
+
+  /* ─── Page sections ─── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d8d5e8; border-radius: 4px; }
+
+  /* ─── Confirm dialog ─── */
+  .confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+    z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.15s;
+  }
+  .confirm-overlay.open { opacity: 1; pointer-events: all; }
+  .confirm-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 340px;
+    box-shadow: var(--shadow);
+  }
+  .confirm-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+  .confirm-msg { color: var(--text2); font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+  .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* ─── iPad / Tablet (768px - 1024px) ─── */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .sidebar { width: 180px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .content { padding: 18px 20px; }
+    .topbar { padding: 12px 20px; }
+    tbody td { padding: 9px 10px; font-size: 12.5px; }
+    thead th { padding: 8px 10px; }
+  }
+
+  /* ─── Mobile / iPad mini portrait ─── */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+
+    /* Sidebar jadi bottom nav */
+    .sidebar {
+      width: 100%;
+      height: auto;
+      position: fixed;
+      bottom: 0; top: auto;
+      flex-direction: row;
+      border-right: none;
+      border-top: 1px solid var(--border);
+      z-index: 200;
+      padding: 0;
+    }
+    .logo { display: none; }
+    .nav {
+      display: flex;
+      flex-direction: row;
+      padding: 0;
+      width: 100%;
+      justify-content: space-around;
+    }
+    .nav-label { display: none; }
+    .nav-item {
+      flex-direction: column;
+      gap: 3px;
+      padding: 8px 6px;
+      font-size: 10px;
+      border-radius: 0;
+      border: none;
+      flex: 1;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 0;
+    }
+    .nav-item .icon { font-size: 20px; width: auto; }
+    .nav-item span:not(.icon):not(.nav-badge) { font-size: 10px; }
+    .nav-item.active { background: #f5f3ff; border-top: 2px solid var(--accent); }
+    .nav-badge { margin-left: 0; margin-top: -2px; position: absolute; top: 6px; right: calc(50% - 22px); font-size: 9px; padding: 1px 4px; }
+    .sidebar-footer { display: none; }
+
+    .main { margin-left: 0; padding-bottom: 70px; }
+    .topbar { padding: 10px 14px; gap: 8px; }
+    .topbar-title { font-size: 14px; }
+    .topbar-date { display: none; }
+    .btn { padding: 6px 10px; font-size: 12px; }
+
+    .content { padding: 14px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat-card { padding: 12px 14px; }
+    .stat-num { font-size: 22px; }
+
+    .form-grid { grid-template-columns: 1fr; }
+    .modal { padding: 18px; }
+
+    /* Table scroll on mobile */
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 640px; }
+    .table-toolbar { flex-wrap: wrap; gap: 6px; padding: 10px; }
+    .search-box { max-width: 100%; }
+
+    .section-header { margin-bottom: 10px; }
+  }
+
+  /* ─── iPad landscape safe ─── */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .main { margin-left: 180px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-title">AKANE Tasks</div>
+      <div class="logo-sub">ระบบติดตามงานทีม</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">หน้าหลัก</div>
+      <div class="nav-item active" onclick="showPage('today')">
+        <span class="icon">📋</span><span>วันนี้</span>
+        <span class="nav-badge red" id="badge-today">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('all')">
+        <span class="icon">📝</span><span>งานทั้งหมด</span>
+        <span class="nav-badge" id="badge-all">0</span>
+      </div>
+      <div class="nav-label">เพิ่มเติม</div>
+      <div class="nav-item" onclick="showPage('recurring')">
+        <span class="icon">🔄</span><span>งานประจำ</span>
+      </div>
+      <div class="nav-item" onclick="showPage('handoff')">
+        <span class="icon">📤</span><span>ส่งต่อแล้ว</span>
+        <span class="nav-badge red" id="badge-handoff">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('done')">
+        <span class="icon">✅</span><span>เสร็จแล้ว</span>
+        <span class="nav-badge" id="badge-done">0</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+  v1.0 · AKANE Collagen<br>
+  <span id="sync-status" style="font-size:10px;margin-top:4px;display:inline-block;"></span>
+</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">📋 งานวันนี้</div>
+      <div class="topbar-date" id="today-label"></div>
+      <button class="btn" onclick="importJSON()" title="นำเข้าข้อมูล">📂 Import</button>
+      <button class="btn" onclick="exportJSON()" title="สำรองข้อมูล">💾 Export</button>
+      <button class="btn btn-primary" onclick="openModal()">+ เพิ่มงาน</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+    </div>
+
+    <div class="content">
+      <!-- ══ PAGE: TODAY ══ -->
+      <div class="page active" id="page-today">
+        <div class="stats-grid">
+          <div class="stat-card purple">
+            <div class="stat-label">งานวันนี้</div>
+            <div class="stat-num" id="stat-today">0</div>
+            <div class="stat-sub">ทั้งหมดที่ due วันนี้</div>
+          </div>
+          <div class="stat-card coral">
+            <div class="stat-label">เลยกำหนด</div>
+            <div class="stat-num" id="stat-overdue">0</div>
+            <div class="stat-sub">ต้องรีบจัดการ</div>
+          </div>
+          <div class="stat-card teal">
+            <div class="stat-label">กำลังทำ</div>
+            <div class="stat-num" id="stat-doing">0</div>
+            <div class="stat-sub">งานที่อยู่ระหว่างทำ</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Urgent</div>
+            <div class="stat-num" id="stat-urgent">0</div>
+            <div class="stat-sub">ต้องทำก่อน</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">🔴 งานเลยกำหนด</div>
+          <div class="section-line"></div>
+        </div>
+        <div class="table-wrap" id="overdue-wrap">
+          <div id="overdue-table-container"></div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">📅 Due วันนี้</div>
+          <div class="section-line"></div>
+        </div>
+        <div class="table-wrap">
+          <div id="today-table-container"></div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: ALL ══ -->
+      <div class="page" id="page-all">
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-box">
+              <span style="color:var(--text3);font-size:14px">🔍</span>
+              <input type="text" id="search-input" placeholder="ค้นหางาน..." oninput="renderAll()">
+            </div>
+            <button class="filter-btn active" onclick="setFilter('all',this)">ทั้งหมด</button>
+            <button class="filter-btn" onclick="setFilter('ยังไม่เริ่ม',this)">ยังไม่เริ่ม</button>
+            <button class="filter-btn" onclick="setFilter('กำลังทำ',this)">กำลังทำ</button>
+            <button class="filter-btn" onclick="setFilter('ติดปัญหา',this)">ติดปัญหา</button>
+            <button class="filter-btn" onclick="setFilter('🔴 Urgent',this)">Urgent</button>
+          </div>
+          <div id="all-table-container"></div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: RECURRING ══ -->
+      <div class="page" id="page-recurring">
+        <div class="rec-section">
+          <div class="rec-section-title">
+            <div class="rec-dot rec-daily"></div>
+            <span>ทุกวัน</span>
+            <span style="color:var(--text3);font-size:12px;margin-left:4px">— เพิ่มเข้างานทั้งหมดทุกเช้า</span>
+          </div>
+          <div id="rec-daily"></div>
+        </div>
+        <div class="rec-section">
+          <div class="rec-section-title">
+            <div class="rec-dot rec-weekly"></div>
+            <span>ทุกสัปดาห์</span>
+          </div>
+          <div id="rec-weekly"></div>
+        </div>
+        <div class="rec-section">
+          <div class="rec-section-title">
+            <div class="rec-dot rec-monthly"></div>
+            <span>ทุกเดือน</span>
+          </div>
+          <div id="rec-monthly"></div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: HANDOFF ══ -->
+      <div class="page" id="page-handoff">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card coral">
+            <div class="stat-label">ยังไม่เสร็จ</div>
+            <div class="stat-num" id="hstat-pending">0</div>
+            <div class="stat-sub">รอคนรับทำ</div>
+          </div>
+          <div class="stat-card teal">
+            <div class="stat-label">เสร็จแล้ว</div>
+            <div class="stat-num" id="hstat-done">0</div>
+            <div class="stat-sub">คนรับทำเสร็จ</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">ติดปัญหา</div>
+            <div class="stat-num" id="hstat-stuck">0</div>
+            <div class="stat-sub">ต้องช่วยแก้</div>
+          </div>
+        </div>
+        <div class="section-header">
+          <div class="section-title">📤 งานที่ส่งต่อให้ทีม</div>
+          <div class="section-line"></div>
+          <span style="font-size:11px;color:var(--text3)">อัปเดต "สถานะของคนรับ" ได้ที่ปุ่ม ✏️</span>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <button class="filter-btn active" onclick="setHandoffFilter('all',this)">ทั้งหมด</button>
+            <button class="filter-btn" onclick="setHandoffFilter('pending',this)">⏳ ยังไม่เสร็จ</button>
+            <button class="filter-btn" onclick="setHandoffFilter('done',this)">✅ เสร็จแล้ว</button>
+            <button class="filter-btn" onclick="setHandoffFilter('stuck',this)">🚨 ติดปัญหา</button>
+          </div>
+          <div id="handoff-table-container"></div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: DONE ══ -->
+      <div class="page" id="page-done">
+        <div class="table-wrap">
+          <div id="done-table-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(245,244,248,0.85);backdrop-filter:blur(4px);z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+  <div style="width:36px;height:36px;border:3px solid #ddd6fe;border-top-color:#7c3aed;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
+  <div style="font-family:'Sarabun',sans-serif;font-size:14px;color:#52496e;">กำลังโหลดข้อมูลจาก Google Sheets...</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">+ เพิ่มงานใหม่</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">ชื่องาน / รายละเอียด *</label>
+        <input class="form-input" id="f-name" placeholder="เช่น สรุปยอดขายส่ง CEO" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">ทีม / แผนก</label>
+        <select class="form-select" id="f-team">
+          <option value="">-- เลือกทีม --</option>
+          <option>Telesales</option>
+          <option>Live Streaming</option>
+          <option>Content</option>
+          <option>Admin/Office</option>
+          <option>HR</option>
+          <option>Management</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ผู้รับผิดชอบ</label>
+        <input class="form-input" id="f-owner" placeholder="ชื่อ เช่น Kate, สแตมป์" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">ส่งต่อให้ (ถ้ามี)</label>
+        <input class="form-input" id="f-handoff" placeholder="ชื่อ หรือ -" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date *</label>
+        <input class="form-input" type="date" id="f-due" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="f-priority">
+          <option value="⚪ Normal">⚪ Normal</option>
+          <option value="🔴 Urgent">🔴 Urgent</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">สถานะ</label>
+        <select class="form-select" id="f-status">
+          <option>ยังไม่เริ่ม</option>
+          <option>กำลังทำ</option>
+          <option>รอคนอื่น</option>
+          <option>ติดปัญหา</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ตามเช็ควันที่</label>
+        <input class="form-input" type="date" id="f-followup" />
+      </div>
+      <div class="form-group full">
+        <label class="form-label">หมายเหตุ / Follow-up</label>
+        <textarea class="form-textarea" id="f-note" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
+      </div>
+      <div class="form-group full" id="handoff-status-group" style="display:none">
+        <label class="form-label">สถานะของคนรับ (ส่งต่อแล้ว)</label>
+        <select class="form-select" id="f-handoff-status">
+          <option value="รอดำเนินการ">⏳ รอดำเนินการ</option>
+          <option value="กำลังทำ">🔵 กำลังทำ</option>
+          <option value="เสร็จแล้ว">✅ เสร็จแล้ว</option>
+          <option value="ติดปัญหา">🚨 ติดปัญหา</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveTask()">บันทึกงาน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title">ยืนยันการลบ</div>
+    <div class="confirm-msg" id="confirm-msg">ต้องการลบงานนี้ใช่ไหม? ไม่สามารถย้อนกลับได้</div>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="btn btn-danger" id="confirm-ok">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span>✓</span><span id="toast-msg"></span></div>
+
+<script>
+// ─── Config — ใส่ URL ของ Google Apps Script ที่นี่ ──────────────────────────
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxok4p7ogt2C2W-MnZVXCK0AQV1XJsLklxD41of0OEsacllmq0n4UW1hxuHS4n97ucj/exec';
+const STORAGE_KEY = 'akane_tasks_v2';
+let GAS_READY = (GAS_URL !== 'YOUR_APPS_SCRIPT_URL_HERE');
+
+function getTodayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// localStorage fallback เสมอ — ถ้า GAS พร้อมจะ sync ด้วย
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+}
+function saveLocal(t) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(t));
+}
+
+// GAS calls
+async function gasGet() {
+  const r = await fetch(GAS_URL + '?action=get');
+  const j = await r.json();
+  return j.tasks || [];
+}
+async function gasSet(taskList) {
+  await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'set', tasks: taskList })
+  });
+}
+
+// saveTasks — บันทึก local ก่อนเสมอ แล้วค่อย sync GAS
+function saveTasks(taskList) {
+  saveLocal(taskList);
+  if (GAS_READY) gasSet(taskList).catch(() => {});
+}
+
+let tasks = [];
+let editingId = null;
+let filterStatus = 'all';
+let confirmCallback = null;
+
+// ─── Load: ถ้า GAS พร้อมดึงจาก Sheets, ไม่งั้นใช้ local ──────────────────────
+async function initTasks() {
+  showLoading(true);
+  if (GAS_READY) {
+    try {
+      tasks = await gasGet();
+      saveLocal(tasks); // sync local ด้วย
+    } catch(e) {
+      tasks = loadLocal();
+      showToast('ออฟไลน์ — ใช้ข้อมูลในเครื่อง');
+    }
+  } else {
+    tasks = loadLocal();
+  }
+
+  // Seed ถ้าว่าง
+  if (tasks.length === 0) {
+    const t = getTodayStr();
+    const d = (n) => { const dt = new Date(); dt.setDate(dt.getDate() + n); return dt.toISOString().split('T')[0]; };
+    tasks = [
+      { id: 1, name: 'เช็คยอดขาย Telesales ประจำวัน', team: 'Telesales', owner: 'Kate', handoff: 'พี่หมิว', due: t, priority: '🔴 Urgent', status: 'กำลังทำ', followup: t, note: 'ดูยอดรายคน เทียบเป้า', created: t, done: false },
+      { id: 2, name: 'ติดตามผล Live ช่วงเช้า', team: 'Live Streaming', owner: 'Kate', handoff: 'สแตมป์', due: t, priority: '⚪ Normal', status: 'ยังไม่เริ่ม', followup: t, note: 'ยอด + engagement', created: t, done: false },
+      { id: 3, name: 'ตรวจสอบคลิป TikTok 5 คลิปใหม่', team: 'Content', owner: 'ปลา', handoff: 'Kate', due: t, priority: '⚪ Normal', status: 'กำลังทำ', followup: t, note: 'น้องออม channel', created: t, done: false },
+      { id: 4, name: 'ส่งสรุป KPI Telesales เดือนนี้', team: 'Telesales', owner: 'Kate', handoff: 'พี่หมิว', due: d(2), priority: '🔴 Urgent', status: 'ยังไม่เริ่ม', followup: d(2), note: 'ส่งภายใน EOD', created: t, done: false },
+      { id: 5, name: 'อนุมัติตารางไลฟ์สัปดาห์หน้า', team: 'Live Streaming', owner: 'Kate', handoff: 'จ๋า', due: d(1), priority: '⚪ Normal', status: 'ยังไม่เริ่ม', followup: d(1), note: 'รอ draft จากทีม', created: t, done: false },
+      { id: 6, name: 'เช็คสต็อก Akane Pinkku', team: 'Admin/Office', owner: 'มุก', handoff: 'Kate', due: d(-1), priority: '⚪ Normal', status: 'ยังไม่เริ่ม', followup: d(-1), note: 'ต้องมีอย่างน้อย 200 ชิ้น', created: d(-2), done: false },
+      { id: 7, name: 'ประชุมทีม Content วางแผน Q3', team: 'Content', owner: 'Kate', handoff: 'เบ็น', due: d(3), priority: '🔴 Urgent', status: 'ยังไม่เริ่ม', followup: d(3), note: 'เตรียม agenda', created: t, done: false },
+      { id: 8, name: 'ติดตามใบลาพนักงาน', team: 'HR', owner: 'Kate', handoff: '-', due: d(-2), priority: '⚪ Normal', status: 'ยังไม่เริ่ม', followup: d(-2), note: 'เช็คใบลาที่ยังไม่ approve', created: d(-3), done: false },
+    ];
+    saveTasks(tasks);
+  }
+  showLoading(false);
+
+  // Update sync status pill
+  const pill = document.getElementById('sync-status');
+  if (pill) {
+    if (GAS_READY) {
+      pill.innerHTML = '<span style="color:#16a34a">● ซิงค์ Sheets</span>';
+    } else {
+      pill.innerHTML = '<span style="color:#d97706">● local only</span>';
+    }
+  }
+  renderToday();
+}
+
+// ─── Recurring templates ─────────────────────────────────────────────────────
+const recurring = {
+  daily: [
+    { name: 'เช็คยอดขาย Telesales รายวัน', team: 'Telesales', owner: 'Kate', handoff: 'พี่หมิว', priority: '🔴 Urgent', note: 'ดูยอดรายคน เทียบเป้า' },
+    { name: 'ติดตามผล Live ช่วงเช้า-เย็น', team: 'Live Streaming', owner: 'Kate', handoff: 'สแตมป์', priority: '⚪ Normal', note: 'ยอด + engagement' },
+    { name: 'ตรวจสอบ Comment/Inbox สินค้า', team: 'Admin/Office', owner: 'มุก', handoff: 'Kate', priority: '⚪ Normal', note: 'ตอบลูกค้าภายใน 2 ชม.' },
+    { name: 'เช็คออเดอร์และการจัดส่ง', team: 'Admin/Office', owner: 'พลอย', handoff: 'Kate', priority: '🔴 Urgent', note: 'ออเดอร์ที่ค้างส่ง' },
+  ],
+  weekly: [
+    { name: 'ประชุมสรุปยอดขายรายสัปดาห์', team: 'Management', owner: 'Kate', handoff: 'พี่หมิว', priority: '🔴 Urgent', note: 'ทุกจันทร์ — เตรียม slide', freq: 'ทุกจันทร์' },
+    { name: 'รีวิวผล KPI ทีม Telesales', team: 'Telesales', owner: 'Kate', handoff: 'หัวหน้าทีม', priority: '🔴 Urgent', note: 'ทุกศุกร์ — เทียบเป้ารายบุคคล', freq: 'ทุกศุกร์' },
+    { name: 'วางแผนตาราง Live สัปดาห์ถัดไป', team: 'Live Streaming', owner: 'สแตมป์', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกพฤหัส — ส่ง draft ให้ Kate', freq: 'ทุกพฤหัส' },
+    { name: 'เช็ค Content ที่ต้องโพสต์สัปดาห์นี้', team: 'Content', owner: 'ปลา', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกจันทร์ — ตรวจ caption + รูป', freq: 'ทุกจันทร์' },
+    { name: 'สรุปค่าใช้จ่าย + ของที่ต้องสั่ง', team: 'Admin/Office', owner: 'มุก', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกศุกร์ ก่อน 16.00', freq: 'ทุกศุกร์' },
+    { name: 'เช็คใบลา/OT พนักงานรายสัปดาห์', team: 'HR', owner: 'Kate', handoff: '-', priority: '⚪ Normal', note: 'ทุกศุกร์ — อัปเดตใน HR Tracker', freq: 'ทุกศุกร์' },
+  ],
+  monthly: [
+    { name: 'สรุปยอดขายรายเดือน ส่ง CEO', team: 'Management', owner: 'Kate', handoff: 'พี่หมิว', priority: '🔴 Urgent', note: 'ทุกสิ้นเดือน — ครบทุกช่องทาง' },
+    { name: 'ทำเงินเดือนพนักงาน', team: 'HR', owner: 'Kate', handoff: 'การเงิน', priority: '🔴 Urgent', note: 'ทุกวันที่ 25 — ตรวจ OT + หักลา' },
+    { name: 'ประเมิน KPI พนักงานรายเดือน', team: 'HR', owner: 'Kate', handoff: 'หัวหน้าทีม', priority: '🔴 Urgent', note: 'ทุกสิ้นเดือน' },
+    { name: 'วางแผน Content Calendar เดือนถัดไป', team: 'Content', owner: 'ปลา', handoff: 'Kate', priority: '⚪ Normal', note: 'ทุกวันที่ 20' },
+    { name: 'เช็คสต็อกสินค้าทุกตัว', team: 'Admin/Office', owner: 'พลอย', handoff: 'Kate', priority: '🔴 Urgent', note: 'ทุกวันที่ 1 — บันทึกลง Stock Sheet' },
+    { name: 'ต่ออายุสัญญา Influencer (ถ้ามี)', team: 'Content', owner: 'Kate', handoff: 'เบ็น', priority: '⚪ Normal', note: 'ทุกสิ้นเดือน' },
+  ]
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function nextId() { return tasks.length ? Math.max(...tasks.map(t => t.id)) + 1 : 1; }
+
+function statusBadge(s) {
+  const map = {
+    'ยังไม่เริ่ม': 'badge-normal', 'กำลังทำ': 'badge-doing',
+    'เสร็จแล้ว': 'badge-done', 'ติดปัญหา': 'badge-stuck',
+    'รอคนอื่น': 'badge-wait', 'ยกเลิก': 'badge-cancel'
+  };
+  return `<span class="badge ${map[s]||'badge-normal'}">${s}</span>`;
+}
+
+function priorityBadge(p) {
+  if (p === '🔴 Urgent') return `<span class="badge badge-urgent">🔴 Urgent</span>`;
+  return `<span class="badge badge-normal">⚪ Normal</span>`;
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function isOverdue(task) {
+  if (!task.due || task.done) return false;
+  return task.due < getTodayStr() && task.status !== 'เสร็จแล้ว' && task.status !== 'ยกเลิก';
+}
+
+function isToday(task) {
+  if (!task.due || task.done) return false;
+  return task.due === getTodayStr() && task.status !== 'เสร็จแล้ว' && task.status !== 'ยกเลิก';
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+const pageTitles = { today: '📋 งานวันนี้', all: '📝 งานทั้งหมด', recurring: '🔄 งานประจำ', handoff: '📤 งานที่ส่งต่อแล้ว', done: '✅ งานที่เสร็จแล้ว' };
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`page-${id}`).classList.add('active');
+  document.querySelectorAll('.nav-item')[['today','all','recurring','handoff','done'].indexOf(id)].classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[id];
+  renderPage(id);
+}
+
+function renderPage(id) {
+  if (id === 'today') renderToday();
+  else if (id === 'all') renderAll();
+  else if (id === 'recurring') renderRecurring();
+  else if (id === 'handoff') renderHandoff();
+  else if (id === 'done') renderDone();
+}
+
+// ─── Render helpers ───────────────────────────────────────────────────────────
+function tableHeader(cols) {
+  return `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+}
+
+function taskRow(t, showDone=false) {
+  const overdue = isOverdue(t);
+  const rowClass = showDone ? 'done-row' : (overdue ? 'overdue-row' : '');
+  const nameClass = showDone ? 'done-strike' : 'task-name';
+  return `<tr class="${rowClass}">
+    <td><div class="${nameClass}">${t.name}</div>${t.note?`<div class="task-note">${t.note}</div>`:''}</td>
+    <td><span class="badge badge-team">${t.team||'-'}</span></td>
+    <td style="color:var(--text2)">${t.owner||'-'}</td>
+    <td style="color:var(--text3)">${t.handoff||'-'}</td>
+    <td>${overdue ? `<span class="badge badge-overdue">${fmtDate(t.due)}</span>` : `<span style="font-size:12px;color:var(--text2)">${fmtDate(t.due)}</span>`}</td>
+    <td>${priorityBadge(t.priority)}</td>
+    <td>${statusBadge(t.status)}</td>
+    <td style="font-size:12px;color:var(--text3)">${fmtDate(t.followup)||'-'}</td>
+    <td>
+      <div class="action-group">
+        ${!showDone ? `<button class="action-btn" onclick="openEditModal(${t.id})" title="แก้ไข">✏️</button>` : ''}
+        ${!showDone ? `<button class="action-btn done" onclick="markDone(${t.id})" title="เสร็จแล้ว">✓</button>` : ''}
+        <button class="action-btn delete" onclick="confirmDelete(${t.id})" title="ลบ">🗑</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function emptyState(msg) {
+  return `<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-text">${msg}</div></div>`;
+}
+
+// ─── Today ────────────────────────────────────────────────────────────────────
+function renderToday() {
+  const active = tasks.filter(t => !t.done && t.status !== 'เสร็จแล้ว' && t.status !== 'ยกเลิก');
+  const overdue = active.filter(isOverdue);
+  const todayTasks = active.filter(isToday);
+
+  document.getElementById('stat-today').textContent = todayTasks.length;
+  document.getElementById('stat-overdue').textContent = overdue.length;
+  document.getElementById('stat-doing').textContent = active.filter(t=>t.status==='กำลังทำ').length;
+  document.getElementById('stat-urgent').textContent = active.filter(t=>t.priority==='🔴 Urgent').length;
+  document.getElementById('badge-today').textContent = todayTasks.length + overdue.length;
+  document.getElementById('badge-all').textContent = active.length;
+  document.getElementById('badge-done').textContent = tasks.filter(t=>t.done||t.status==='เสร็จแล้ว').length;
+  const handoffPending = tasks.filter(t => t.handoff && t.handoff !== '-' && t.handoff !== '' && !t.done && t.status !== 'เสร็จแล้ว' && t.handoffStatus && t.handoffStatus !== 'เสร็จแล้ว').length;
+  document.getElementById('badge-handoff').textContent = handoffPending || '';
+
+  const cols = ['ชื่องาน','ทีม','ผู้รับผิดชอบ','ส่งต่อให้','Due Date','Priority','สถานะ','ตามเช็ค',''];
+  
+  const odContainer = document.getElementById('overdue-table-container');
+  if (overdue.length === 0) {
+    odContainer.innerHTML = emptyState('ไม่มีงานค้างกำหนด 👍');
+  } else {
+    odContainer.innerHTML = tableHeader(cols) + overdue.map(t=>taskRow(t)).join('') + '</tbody></table>';
+  }
+
+  const tdContainer = document.getElementById('today-table-container');
+  if (todayTasks.length === 0) {
+    tdContainer.innerHTML = emptyState('ไม่มีงาน due วันนี้');
+  } else {
+    tdContainer.innerHTML = tableHeader(cols) + todayTasks.map(t=>taskRow(t)).join('') + '</tbody></table>';
+  }
+}
+
+// ─── All ──────────────────────────────────────────────────────────────────────
+function setFilter(s, btn) {
+  filterStatus = s;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+function renderAll() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let list = tasks.filter(t => !t.done && t.status !== 'เสร็จแล้ว' && t.status !== 'ยกเลิก');
+  if (filterStatus !== 'all') {
+    if (filterStatus === '🔴 Urgent') list = list.filter(t => t.priority === '🔴 Urgent');
+    else list = list.filter(t => t.status === filterStatus);
+  }
+  if (q) list = list.filter(t => (t.name+t.owner+t.team+t.note).toLowerCase().includes(q));
+  
+  const cols = ['ชื่องาน','ทีม','ผู้รับผิดชอบ','ส่งต่อให้','Due Date','Priority','สถานะ','ตามเช็ค',''];
+  const c = document.getElementById('all-table-container');
+  if (list.length === 0) { c.innerHTML = emptyState('ไม่มีงานที่ตรงเงื่อนไข'); return; }
+  c.innerHTML = tableHeader(cols) + list.map(t=>taskRow(t)).join('') + '</tbody></table>';
+}
+
+// ─── Recurring ────────────────────────────────────────────────────────────────
+function renderRecurring() {
+  ['daily','weekly','monthly'].forEach(key => {
+    const el = document.getElementById(`rec-${key}`);
+    el.innerHTML = recurring[key].map((r,i) => `
+      <div class="rec-card">
+        <div class="rec-info">
+          <div class="rec-name">${r.name}</div>
+          <div class="rec-meta">${r.team} · ${r.owner}${r.freq?' · '+r.freq:''} · ${r.priority}</div>
+        </div>
+        <button class="btn btn-sm" onclick="addFromRecurring('${key}',${i})">+ เพิ่มเข้างาน ↗</button>
+      </div>`).join('');
+  });
+}
+
+function addFromRecurring(key, idx) {
+  const r = recurring[key][idx];
+  const t = getTodayStr();
+  tasks.unshift({ id: nextId(), name: r.name, team: r.team, owner: r.owner, handoff: r.handoff||'-', due: t, priority: r.priority, status: 'ยังไม่เริ่ม', followup: t, note: r.note||'', created: t, done: false });
+  saveTasks(tasks);
+  showToast(`เพิ่ม "${r.name}" แล้ว`);
+}
+
+// ─── Handoff status badge ────────────────────────────────────────────────────
+function handoffStatusBadge(s) {
+  const map = {
+    'รอดำเนินการ': 'background:#fffbeb;color:#b45309;border:1px solid #fde68a',
+    'กำลังทำ':     'background:#f0fdfa;color:#0f766e;border:1px solid #99f6e4',
+    'เสร็จแล้ว':   'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0',
+    'ติดปัญหา':    'background:#fff1f2;color:#be123c;border:1px solid #fecdd3',
+  };
+  const style = map[s] || map['รอดำเนินการ'];
+  const icon = { 'รอดำเนินการ':'⏳','กำลังทำ':'🔵','เสร็จแล้ว':'✅','ติดปัญหา':'🚨' }[s] || '⏳';
+  return `<span class="badge" style="${style}">${icon} ${s||'รอดำเนินการ'}</span>`;
+}
+
+let handoffFilter = 'all';
+function setHandoffFilter(f, btn) {
+  handoffFilter = f;
+  document.querySelectorAll('#page-handoff .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHandoff();
+}
+
+function renderHandoff() {
+  let list = tasks.filter(t => t.handoff && t.handoff !== '-' && t.handoff !== '' && !t.done && t.status !== 'ยกเลิก');
+  
+  const pending = list.filter(t => !t.handoffStatus || t.handoffStatus === 'รอดำเนินการ' || t.handoffStatus === 'กำลังทำ');
+  const done    = list.filter(t => t.handoffStatus === 'เสร็จแล้ว');
+  const stuck   = list.filter(t => t.handoffStatus === 'ติดปัญหา');
+
+  document.getElementById('hstat-pending').textContent = pending.length;
+  document.getElementById('hstat-done').textContent = done.length;
+  document.getElementById('hstat-stuck').textContent = stuck.length;
+
+  if (handoffFilter === 'pending') list = pending;
+  else if (handoffFilter === 'done') list = done;
+  else if (handoffFilter === 'stuck') list = stuck;
+
+  const c = document.getElementById('handoff-table-container');
+  if (list.length === 0) { c.innerHTML = emptyState('ไม่มีงานที่ส่งต่อในกลุ่มนี้'); return; }
+
+  const rows = list.map(t => {
+    const overdue = isOverdue(t);
+    return `<tr class="${overdue ? 'overdue-row' : ''}">
+      <td><div class="task-name">${t.name}</div>${t.note ? `<div class="task-note">${t.note}</div>` : ''}</td>
+      <td><span class="badge badge-team">${t.team||'-'}</span></td>
+      <td style="font-weight:500;color:var(--accent)">${t.handoff}</td>
+      <td>${handoffStatusBadge(t.handoffStatus)}</td>
+      <td>${overdue ? `<span class="badge badge-overdue">${fmtDate(t.due)}</span>` : `<span style="font-size:12px;color:var(--text2)">${fmtDate(t.due)}</span>`}</td>
+      <td>${priorityBadge(t.priority)}</td>
+      <td>
+        <div class="action-group">
+          <button class="action-btn" onclick="openEditModal(${t.id})" title="แก้ไข/อัปเดตสถานะ">✏️ อัปเดต</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  c.innerHTML = `<table><thead><tr>
+    <th>ชื่องาน</th><th>ทีม</th><th>ส่งต่อให้</th><th>สถานะของคนรับ</th><th>Due Date</th><th>Priority</th><th></th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─── Done ─────────────────────────────────────────────────────────────────────
+function renderDone() {
+  const list = tasks.filter(t => t.done || t.status === 'เสร็จแล้ว' || t.status === 'ยกเลิก');
+  const cols = ['ชื่องาน','ทีม','ผู้รับผิดชอบ','ส่งต่อให้','Due Date','Priority','สถานะ','ตามเช็ค',''];
+  const c = document.getElementById('done-table-container');
+  if (list.length === 0) { c.innerHTML = emptyState('ยังไม่มีงานที่เสร็จ'); return; }
+  c.innerHTML = tableHeader(cols) + list.map(t=>taskRow(t,true)).join('') + '</tbody></table>';
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function toggleHandoffStatusField() {
+  const handoff = document.getElementById('f-handoff').value.trim();
+  const group = document.getElementById('handoff-status-group');
+  if (group) group.style.display = (handoff && handoff !== '-') ? 'flex' : 'none';
+}
+
+function openModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = '+ เพิ่มงานใหม่';
+  ['name','team','owner','handoff','due','priority','status','followup','note'].forEach(f => {
+    const el = document.getElementById(`f-${f}`);
+    if (el) el.value = f === 'due' || f === 'followup' ? getTodayStr() : f === 'priority' ? '⚪ Normal' : f === 'status' ? 'ยังไม่เริ่ม' : '';
+  });
+  document.getElementById('f-handoff-status').value = 'รอดำเนินการ';
+  document.getElementById('handoff-status-group').style.display = 'none';
+  document.getElementById('f-handoff').oninput = toggleHandoffStatusField;
+  document.getElementById('task-modal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = '✏️ แก้ไขงาน';
+  document.getElementById('f-name').value = t.name || '';
+  document.getElementById('f-team').value = t.team || '';
+  document.getElementById('f-owner').value = t.owner || '';
+  document.getElementById('f-handoff').value = t.handoff || '';
+  document.getElementById('f-due').value = t.due || '';
+  document.getElementById('f-priority').value = t.priority || '⚪ Normal';
+  document.getElementById('f-status').value = t.status || 'ยังไม่เริ่ม';
+  document.getElementById('f-followup').value = t.followup || '';
+  document.getElementById('f-note').value = t.note || '';
+  document.getElementById('f-handoff-status').value = t.handoffStatus || 'รอดำเนินการ';
+  const group = document.getElementById('handoff-status-group');
+  const hv = t.handoff && t.handoff !== '-' && t.handoff !== '';
+  group.style.display = hv ? 'flex' : 'none';
+  document.getElementById('f-handoff').oninput = toggleHandoffStatusField;
+  document.getElementById('task-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('task-modal').classList.remove('open'); }
+
+function saveTask() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่องาน', 'error'); return; }
+  const handoffVal = document.getElementById('f-handoff').value.trim() || '-';
+  const task = {
+    name, team: document.getElementById('f-team').value,
+    owner: document.getElementById('f-owner').value.trim(),
+    handoff: handoffVal,
+    due: document.getElementById('f-due').value,
+    priority: document.getElementById('f-priority').value,
+    status: document.getElementById('f-status').value,
+    followup: document.getElementById('f-followup').value,
+    note: document.getElementById('f-note').value.trim(),
+    handoffStatus: (handoffVal && handoffVal !== '-') ? document.getElementById('f-handoff-status').value : '',
+    created: getTodayStr(), done: false
+  };
+  if (editingId) {
+    const idx = tasks.findIndex(t => t.id === editingId);
+    tasks[idx] = { ...tasks[idx], ...task };
+    showToast('อัปเดตงานแล้ว');
+  } else {
+    tasks.unshift({ id: nextId(), ...task });
+    showToast('เพิ่มงานใหม่แล้ว');
+  }
+  saveTasks(tasks);
+  closeModal();
+  renderPage(document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1]);
+}
+
+// ─── Mark done ────────────────────────────────────────────────────────────────
+function markDone(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.done = true; t.status = 'เสร็จแล้ว'; t.doneDate = getTodayStr();
+  saveTasks(tasks);
+  showToast(`"${t.name}" เสร็จแล้ว ✓`);
+  const curPage = document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+  renderPage(curPage);
+}
+
+// ─── Delete ───────────────────────────────────────────────────────────────────
+function confirmDelete(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('confirm-msg').textContent = `ต้องการลบ "${t.name}" ใช่ไหม?`;
+  document.getElementById('confirm-overlay').classList.add('open');
+  document.getElementById('confirm-ok').onclick = () => { doDelete(id); closeConfirm(); };
+}
+function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); }
+function doDelete(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(tasks);
+  showToast('ลบงานแล้ว');
+  const curPage = document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1];
+  renderPage(curPage);
+}
+
+// ─── Export / Import ─────────────────────────────────────────────────────────
+function exportJSON() {
+  const data = { version: 2, exported: new Date().toISOString(), tasks };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = `akane-tasks-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  a.click();
+  showToast('Export สำเร็จ — เก็บไฟล์ไว้ได้เลย');
+}
+
+function importJSON() {
+  document.getElementById('import-file').click();
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const imported = data.tasks || data;
+      if (!Array.isArray(imported)) { showToast('ไฟล์ไม่ถูกต้อง', 'error'); return; }
+      if (!confirm(`นำเข้า ${imported.length} งาน ทับข้อมูลเดิมทั้งหมดใช่ไหม?`)) return;
+      tasks = imported;
+      saveTasks(tasks);
+      showToast(`Import สำเร็จ — ${imported.length} งาน`);
+      renderPage(document.querySelector('.nav-item.active').getAttribute('onclick').match(/'(\w+)'/)[1]);
+    } catch { showToast('อ่านไฟล์ไม่ได้ กรุณาเลือกไฟล์ JSON ที่ถูกต้อง', 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ─── Loading overlay helpers ─────────────────────────────────────────────────
+function showLoading(on) {
+  document.getElementById('loading-overlay').style.display = on ? 'flex' : 'none';
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+document.getElementById('today-label').textContent = new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+document.getElementById('task-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+initTasks();
+</script>
+</body>
+</html>
