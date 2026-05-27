@@ -841,6 +841,10 @@
         <label class="form-label">หมายเหตุ / Follow-up</label>
         <textarea class="form-textarea" id="f-note" placeholder="รายละเอียดเพิ่มเติม..."></textarea>
       </div>
+      <div class="form-group full">
+        <label class="form-label">🔗 ลิงก์ที่เกี่ยวข้อง (Google Sheet, Doc, Drive ฯลฯ)</label>
+        <input class="form-input" id="f-link" placeholder="https://docs.google.com/..." />
+      </div>
       <div class="form-group full" id="handoff-status-group" style="display:none">
         <label class="form-label">สถานะของคนที่เช็ค</label>
         <select class="form-select" id="f-handoff-status">
@@ -1194,6 +1198,7 @@ function taskRow(t, showDone=false) {
     <td style="font-size:12px;color:var(--text3)">${fmtDate(t.followup)||'-'}</td>
     <td>
       <div class="action-group">
+        ${t.link ? `<button class="action-btn" onclick="window.open('${encodeURI(''+t.link)}','_blank')" title="เปิดลิงก์">🔗</button>` : ''}
         ${!showDone ? `<button class="action-btn" onclick="openEditModal(${t.id})" title="แก้ไข">✏️</button>` : ''}
         ${!showDone ? `<button class="action-btn done" onclick="markDone(${t.id})" title="เสร็จแล้ว">✓</button>` : ''}
         <button class="action-btn delete" onclick="confirmDelete(${t.id})" title="ลบ">🗑</button>
@@ -1451,6 +1456,7 @@ function openModal() {
   document.getElementById('handoff-status-group').style.display = 'none';
   document.getElementById('f-handoff').oninput = toggleHandoffStatusField;
   // reset next action
+  document.getElementById('f-link').value = '';
   document.getElementById('f-has-next').checked = false;
   document.getElementById('next-action-fields').style.display = 'none';
   document.getElementById('f-next-name').value = '';
@@ -1474,6 +1480,7 @@ function openEditModal(id) {
   document.getElementById('f-status').value = t.status || 'ยังไม่เริ่ม';
   document.getElementById('f-followup').value = t.followup || '';
   document.getElementById('f-note').value = t.note || '';
+  document.getElementById('f-link').value = t.link || '';
   document.getElementById('f-handoff-status').value = t.handoffStatus || 'รอดำเนินการ';
   const group = document.getElementById('handoff-status-group');
   const hv = t.handoff && t.handoff !== '-' && t.handoff !== '';
@@ -1505,6 +1512,7 @@ function saveTask() {
     status: document.getElementById('f-status').value,
     followup: document.getElementById('f-followup').value,
     note: document.getElementById('f-note').value.trim(),
+    link: document.getElementById('f-link').value.trim(),
     handoffStatus: (handoffVal && handoffVal !== '-') ? document.getElementById('f-handoff-status').value : '',
     nextName: document.getElementById('f-has-next').checked ? document.getElementById('f-next-name').value.trim() : '',
     nextDue: document.getElementById('f-has-next').checked ? document.getElementById('f-next-due').value : '',
@@ -1778,6 +1786,7 @@ function renderCalDayTasks(dateStr) {
     <td>${t.priority==='🔴 Urgent'?'<span class="badge badge-urgent">🔴 Urgent</span>':'<span class="badge badge-normal">⚪ Normal</span>'}</td>
     <td>${statusBadge(t.status)}</td>
     <td><div class="action-group">
+      ${t.link ? `<button class="action-btn" onclick="window.open('${encodeURI(''+t.link)}','_blank')" title="เปิดลิงก์">🔗</button>` : ''}
       <button class="action-btn" onclick="openEditModal(${t.id})">✏️</button>
       ${!t.done&&t.status!=='เสร็จแล้ว'?`<button class="action-btn done" onclick="markDone(${t.id})">✓</button>`:''}
     </div></td>
